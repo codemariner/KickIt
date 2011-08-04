@@ -289,9 +289,16 @@ module Kickit
       uri_path '/badgeactions/list/:as'
     end
 
+    class AddAction < RestMethod
+      desc 'Adds a new badge action to the system'
+      uri_path '/badgeaction/add/:as'
+      
+      param :name, :required => true
+    end
+
     class AddBadgeRequirement < RestMethod
       desc 'Adds badge requirements into the system'
-      uri_path '/badge/requirement/add/:as'
+      uri_path '/badgerequirement/add/:as'
 
       param :badgeId, :required => true
       param :actionId, :required => true
@@ -382,6 +389,12 @@ module Kickit
       desc "list users from feed"
 
       param :mediaType, 'user'
+    end
+
+    class PhotosFeed < RssMethod
+      desc "list photos for a specific user"
+
+      param :mediaType, 'photo'
     end
   end
 
