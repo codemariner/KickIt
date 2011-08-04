@@ -384,6 +384,13 @@ module Kickit
       param :isProfileImage
     end
 
+    class DeleteMedia < RestMethod
+      desc "delete a media"
+      uri_path '/deletemedia/:as'
+
+      param :mediaType, :required => true
+      param :mediaId, :required => true
+    end
 
     class UserFeed < RssMethod
       desc "list users from feed"
