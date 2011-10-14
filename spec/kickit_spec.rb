@@ -27,8 +27,6 @@ describe Kickit do
         config.rest_base_uri = 'http://api.kickapps.com/rest'
         config.as = '12345'
         config.developerKey = 'devkey'
-        config.developerKey = '2d7d9f42'
-        config.as = '193980'
         @config = config
       end
 
