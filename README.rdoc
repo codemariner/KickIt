@@ -1,0 +1,5 @@
+= KickIt
+
+KickIt is a lightweight Ruby wrapper around the KickApps API.
+
+
