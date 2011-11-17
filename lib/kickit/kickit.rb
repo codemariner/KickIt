@@ -278,12 +278,24 @@ module Kickit
       param :idType #username or email
     end
 
+    class AddBadge < RestMethod
+      desc 'Add a badge'
+      uri_path '/badge/add/:as'
+
+      param :location
+      param :name
+      param :verbosename
+      param :url
+
+    end
+    
     class EditBadge < RestMethod
       desc 'Edit a badge from the available set of badges in the BET community'
       uri_path '/badge/edit/:as'
 
       param :badgeId, :required => true
       param :published
+      param :name
     end
 
     class UserBadgeStatus < RestMethod
