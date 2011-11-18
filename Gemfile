@@ -14,6 +14,8 @@ gem "mime-types", "~>1.16"
 gem "mocha", "~>0.9.12"
 gem "rake", "~>0.8.7"
 gem "rest-client", "~>1.6.3"
+gem "handsoap", "~>1.1.8"
+gem "fastercsv"
 
 group :test do
   gem "rspec", "~>2.6.0"
