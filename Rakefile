@@ -1,10 +1,9 @@
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/lib'
 require 'rubygems'
 require "bundler/setup"
 
 require 'rake'
 
+require 'kickit'
+require 'kickit/tasks'
 require 'init'
-require 'lib/tasks'
-
-require 'tasks/custom'
-
