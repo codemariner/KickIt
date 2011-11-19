@@ -1,0 +1,101 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.dirname(__FILE__)
+
+# This will generate a csv containing user level, points, and badge
+# information.
+# this script assumes that user and badge data has been loaded into mongodb
+#
+
+require "#{File.dirname(__FILE__)}/common"
+require 'mongo'
+require 'optparse'
+require 'fastercsv'
+require 'ap'
+
+
+class BadgesReport
+  # cols we'll pull from the documents to csv
+  @@cols = %w(username email points joined level)
+
+  def initialize(outfile,db,collection)
+    @outfile = outfile
+    @db = db
+    @collection = collection
+    # holds badges stats
+    @badges = {}
+  end
+
+  def execute()
+    db = Mongo::Connection.new.db(@db)
+    coll = db.collection(@collection)
+    users = coll.find({"admin_tags" => /user/}, {:sort => ['username',:asc]})
+
+    FasterCSV.open(@outfile, 'w') do |csv|
+      csv << (@@cols + ['total badges', 'badges'])
+      users.each do |user|
+        row = []
+        @@cols.each {|col| row << user[col]}
+
+        # total badges
+        badges = user["badges"]
+        if (badges and badges.respond_to? :each)
+          row << badges.size
+          row << badges.collect{|badge| add_badge(badge["name"]);badge["name"]}.join(",")
+        else
+          row << 0
+          row << ''
+        end
+
+
+        csv << row
+      end
+    end
+    ap @badges
+  end
+
+  def add_badge(name)
+    unless @badges[name]
+      @badges[name] = 0
+    end
+    @badges[name] += 1
+  end
+end
+
+
+out_file = nil
+database = 'cambio'
+collection = 'users'
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: #{__FILE__} [options]"
+
+  opts.on('-o', '--output FILE', 'The output file to write the csv data.') do |arg|
+    out_file = arg 
+  end
+
+  opts.on('-d', '--database [NAME]', "The name of the database to import into.  Default is '#{database}'.") do |arg|
+    database = arg 
+  end
+
+  opts.on('-c', '--collection [NAME]', "The name of the collection to import into.  Default is '#{collection}'.") do |arg|
+    collection = arg
+  end
+
+  opts.on_tail('-h', '--help', 'Shows this help.') do |arg|
+    puts opts
+    exit
+  end
+
+end
+
+parser.parse!(ARGV)
+
+unless out_file
+  puts "You must specify an output file."
+  puts parser
+  exit 1
+end
+
+exporter = BadgesReport.new(out_file,database,collection)
+exporter.execute

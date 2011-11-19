@@ -1,0 +1,62 @@
+#!/usr/bin/env ruby
+
+require "#{File.dirname(__FILE__)}/common"
+require 'optparse'
+
+# command line for importing data from kickapps into mongodb
+
+
+
+file = nil
+database = 'cambio'
+collection = 'users'
+options = nil
+dry = false
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: #{__FILE__} [options]"
+
+  opts.on('-f', '--file FILE', 'The csv import file that must contain the columns headings in the first line') do |arg|
+    file = arg 
+  end
+
+  opts.on('-d', '--database [NAME]', "The name of the database to import into.  Default is '#{database}'.") do |arg|
+    database = arg 
+  end
+
+  opts.on('-c', '--collection [NAME]', "The name of the collection to import into.  Default is '#{collection}'.") do |arg|
+    collection = arg
+  end
+
+  opts.on('--options val1,val2,val3', Array, 'Options to pass to the mongoimport command.') do |list|
+    options = list.collect{|a|a.strip}
+  end
+
+  opts.on('-D', '--dry', 'Perform a dry run. The mongoimport command will only be displayed and not executed.') do |arg|
+    dry = true
+  end
+
+  opts.on_tail('-h', '--help', 'Shows this help.') do |arg|
+    puts opts
+    exit
+  end
+
+  opts.separator ""
+  opts.separator %[mongoimport must be in the current path for this to work.  It is assumed that the csv file will contain a header line. Also, this will copy the import file to kickit_import.csv in order to remove the header line before import.]
+
+end
+
+parser.parse!(ARGV)
+
+unless file
+  puts parser
+  exit 1
+end
+
+
+importer = Kickit::Import::Mongo.new(file)
+importer.dry_run = dry
+importer.db = database if database
+importer.collection = collection if collection
+importer.options = options if options
+importer.execute
