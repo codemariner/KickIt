@@ -6,55 +6,6 @@ require 'rest_client'
 
 module Kickit
 
-  # A call that requests from the KickApps RSS API.
-  class RssMethod < ApiMethod
-    # a place for subclasses to store what parameters are expected and
-    # what default values to use.
-    def self.param(name, value)
-      self.params[name] = value
-    end
-
-    def self.params
-      @params ||= {}
-    end
-
-    # returns all RssMethod subclasses
-    def self.all
-      ApiMethod.all.select do |name, clazz| 
-        clazz < RssMethod 
-      end
-    end
-
-    def execute(queryString="")
-      parameters = prepare(queryString)
-      uri = URI.parse(Kickit::Config.feed_url)
-
-      path = "#{uri.path}?".concat(parameters.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))
-      puts path
-      response = Net::HTTP.get(uri.host, path)
-      Hash.from_xml(response)
-    end
-
-    private
-
-    # takes care of setting up the parameters to pass
-    def prepare(queryString)
-      parameters = {}
-      parameters[:as] = Kickit::Config.as
-
-      if (queryString and !queryString.empty?)
-        params = queryString.split('&')
-        params.each do |param|
-          name, value = param.split("=")
-          parameters[CGI.escape(name)] = CGI.escape(value)
-        end
-      end
-
-      parameters = self.class.params.merge(parameters)
-      parameters
-    end
-  end
-
   # This helps to manage a specific user's session against the API in
   # which the user must first obtain and utilize a session token for
   # making any subsequent requests to the API.
@@ -80,8 +31,10 @@ module Kickit
       yield self if block_given?
     end
 
+    # returns a RestMethod by name, otherwise nil
     def api(method_name)
-      clazz = ApiMethod.find(method_name.to_sym)
+      clazz = ApiRegistry.find(method_name.to_sym)
+      return unless clazz < RestMethod
       api_method = clazz.new
       api_method.session = self if api_method.kind_of? RestMethod
       api_method
@@ -107,7 +60,8 @@ module Kickit
 
   # An ApiMethod that calls the KickApps REST API.
   #
-  class RestMethod < ApiMethod
+  class RestMethod 
+    include ApiMethod
 
     # a RestSession
     attr_accessor :session
@@ -132,7 +86,7 @@ module Kickit
     end
 
     def self.all
-      ApiMethod.all.select do |name, clazz| 
+      ApiRegistry.all.select do |name, clazz| 
         clazz < RestMethod 
       end
     end

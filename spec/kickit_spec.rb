@@ -39,7 +39,7 @@ describe Kickit do
     end
 
     after(:each) do
-      Kickit::ApiMethod.remove('test_method')
+      Kickit::ApiRegistry.remove('test_method')
     end
 
     it "will submit a request to the configured uri path" do
@@ -74,8 +74,8 @@ describe Kickit do
 
 
     it "should register subclasses when they are loaded" do
-      Kickit::RestMethod.find(:test_method).should_not be_nil
-      Kickit::RestMethod.find(:test_method).should eql(TestMethod)
+      Kickit::ApiRegistry.find(:test_method).should_not be_nil
+      Kickit::ApiRegistry.find(:test_method).should eql(TestMethod)
     end
 
 

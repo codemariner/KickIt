@@ -33,110 +33,84 @@ module Kickit
   end
 
 
-
-  # represents a method in one of the KickApps APIs.
+  # A place to store all api methods that have been created
   #
-  class ApiMethod
-    
+  module ApiRegistry
     # all registered api method implementations
     @@register = {}
-
-    # Performs the API call.  Subclasses should override this.
-    def execute(parameters={})
-      raise "Subclasses of ApiMethod must implement execute()."
+ 
+    def self.add(method_name, method_class)
+      @@register[method_name] = method_class
     end
 
-    # returns all registered ApiMethod instances.
-    def self.all()
-      @@register
-    end
-
-    # A description of the ApiMethod.  This is particularly used
-    # when displaying information about the call.
-    def self.desc(value=nil)
-      return @description unless value
-      @description = value
-    end
-
-    # Returns a registered ApiMethod by it's name.
-    #
-    def self.find(method_name)
-      @@register[method_name]
-    end
-    
     # Removes an ApiMethod by it's given name.  This is mostly to support
     # testing purposes.
     #
     def self.remove(method_name)
       @@register.delete(method_name)
     end
-
-    # detect when subclasses are created and register them by a
-    # parameterized name
-    #
-    def self.inherited(subclass)
-      # prevent the RssMethod and RestMethod classes themselves from being
-      # registered.  Yes, this probably isn't the cleanest way to do this.
-      return if subclass == RssMethod or subclass == RestMethod
-
-      # register subclasses
-      name = subclass.name.demodulize.underscore.to_sym
-      if @@register[name]
-        # TODO: do smart integration with logging
-        puts "warning: api method already registered for #{@@register[name]}.  This has been overridden by #{subclass.name}"
-      end
-      @@register[subclass.name.demodulize.underscore.to_sym] = subclass
+    
+    # returns all registered ApiMethod instances.
+    def self.all()
+      @@register
     end
-
+    
+    # Returns a registered ApiMethod by it's name.
+    #
+    def self.find(method_name)
+      @@register[method_name]
+    end
+        
   end
 
-  # A call that requests from the KickApps RSS API.
-  class RssMethod < ApiMethod
-    # a place for subclasses to store what parameters are expected and
-    # what default values to use.
-    def self.param(name, value)
-      self.params[name] = value
-    end
-
-    def self.params
-      @params ||= {}
-    end
-
-    # returns all RssMethod subclasses
-    def self.all
-      ApiMethod.all.select do |name, clazz| 
-        clazz < RssMethod 
-      end
-    end
-
-    def execute(queryString="")
-      parameters = prepare(queryString)
-      uri = URI.parse(Kickit::Config.feed_url)
-
-      path = "#{uri.path}?".concat(parameters.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))
-      puts path
-      response = Net::HTTP.get(uri.host, path)
-      Hash.from_xml(response)
-    end
-
-    private
-
-    # takes care of setting up the parameters to pass
-    def prepare(queryString)
-      parameters = {}
-      parameters[:as] = Kickit::Config.as
-
-      if (queryString and !queryString.empty?)
-        params = queryString.split('&')
-        params.each do |param|
-          name, value = param.split("=")
-          parameters[CGI.escape(name)] = CGI.escape(value)
+  # represents a method in one of the KickApps APIs. It is intended that
+  # including classes will represent one of the type of KickApps APIs like
+  # REST, SOAP, or RSS.  This will cause including classes to
+  # automatically register their subclasses in the ApiRegistry such that:
+  #
+  #   class RestMethod
+  #     include ApiMethod
+  #   end
+  #
+  #   class GetUserProfile < RestMethod
+  #   end
+  #
+  #   ApiRegistery.find('get_user_profile')
+  #   => GetUserProfile
+  #
+  module ApiMethod
+    
+    def self.included(base)
+      base.class_eval do
+    
+        # Performs the API call.  Subclasses should override this.
+        def execute(parameters={})
+          raise "Subclasses of #{base.name} must implement execute()."
+        end
+    
+        # A description of the ApiMethod.  This is particularly used
+        # when displaying information about the call.
+        def self.desc(value=nil)
+          return @description unless value
+          @description = value
+        end
+    
+        # detect when subclasses are created and register them by a
+        # parameterized name
+        #
+        def self.inherited(subclass)
+          # register subclasses
+          name = subclass.name.demodulize.underscore.to_sym
+          if ApiRegistry.find(name)
+            # TODO: do smart integration with logging
+            puts "warning: api method already registered for #{ApiRegistry.find[name]}.  This has been overridden by #{subclass.name}"
+          end
+          ApiRegistry.add(subclass.name.demodulize.underscore.to_sym,subclass)
         end
       end
 
-      parameters = self.class.params.merge(parameters)
-      parameters
-    end
+    end 
+
   end
 
 end

@@ -7,7 +7,8 @@ require 'rest_client'
 module Kickit
 
   # A call that requests from the KickApps RSS API.
-  class RssMethod < ApiMethod
+  class RssMethod
+    include ApiMethod
     # a place for subclasses to store what parameters are expected and
     # what default values to use.
     def self.param(name, value)
@@ -20,7 +21,7 @@ module Kickit
 
     # returns all RssMethod subclasses
     def self.all
-      ApiMethod.all.select do |name, clazz| 
+      ApiRegistry.all.select do |name, clazz| 
         clazz < RssMethod 
       end
     end
