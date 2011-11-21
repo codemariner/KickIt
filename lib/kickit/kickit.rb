@@ -6,6 +6,18 @@ require 'rest_client'
 
 module Kickit
 
+  module Errors
+    class ParameterRequiredError < StandardError
+      attr_reader :parameter_name
+      def initialize(parameter_name)
+        @parameter_name = parameter_name
+      end
+      def message
+        "Parameter '#{@parameter_name}' is missing."
+      end
+    end
+  end
+
   # Configuration for kickapps API.  Perform configuration in some kind of
   # initializer.
   #
@@ -54,6 +66,13 @@ module Kickit
     #
     def self.find(method_name)
       @@register[method_name]
+    end
+    
+    # Removes an ApiMethod by it's given name.  This is mostly to support
+    # testing purposes.
+    #
+    def self.remove(method_name)
+      @@register.delete(method_name)
     end
 
     # detect when subclasses are created and register them by a
@@ -254,6 +273,16 @@ module Kickit
     def prepare(parameters)
       parameters[:as] = Kickit::Config.as.to_s
       parameters[:t] = session.token['TOKEN'] if session
+
+      # check for required parameters
+      self.class.params.each do |name,config|
+        if (config[:required])
+          unless parameters.keys.include?(name)
+            e = Errors::ParameterRequiredError.new(name)
+            raise e
+          end
+        end
+      end
     end
 
     # constructs the url based on configuration while taking care to

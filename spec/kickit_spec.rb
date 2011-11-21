@@ -20,8 +20,8 @@ describe Kickit do
 
 
   describe "A RestMethod" do
-    before(:all) do
-      
+
+    before(:each) do
       @config = nil
         Kickit::Config.new do |config|
         config.rest_base_uri = 'http://api.kickapps.com/rest'
@@ -36,7 +36,10 @@ describe Kickit do
         param :badgeId, :required => true
         param :location
       end
+    end
 
+    after(:each) do
+      Kickit::ApiMethod.remove('test_method')
     end
 
     it "will submit a request to the configured uri path" do
@@ -91,6 +94,33 @@ describe Kickit do
         session.token['TOKEN'].should eql('1234')
       end
     end
+
+    describe "that has a parameter that is specified as :required" do
+      before(:all) do
+        Net::HTTP.stub(:post_form) do |uri, params|
+          resp = Object.new
+          def resp.body()
+            '{"status": 1}'
+          end
+          resp
+        end
+      end
+      it "should raise an exception if the parameter is not provided" do
+        begin
+          Kickit::RestSession.new('ssayles') do |session|
+            session.api('test_method').execute()
+            raise "execute should have failed with missing parameter"
+          end
+        rescue Kickit::Errors::ParameterRequiredError => e
+        end
+
+        # should run with the parameter now
+        Kickit::RestSession.new('ssayles') do |session|
+          session.api('test_method').execute(:badgeId => 'foo')
+        end
+      end
+    end
+
   end
 
 end
