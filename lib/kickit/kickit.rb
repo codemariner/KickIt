@@ -27,6 +27,103 @@ module Kickit
   end
 
 
+
+  class ApiMethod
+    
+    # all registered api method implementations
+    @@register = {}
+
+    # Performs the API call.  Subclasses should override this.
+    def execute(parameters={})
+      raise "Subclasses of ApiMethod must implement execute()."
+    end
+
+    # returns all registered ApiMethod instances.
+    def self.all()
+      @@register
+    end
+
+    # A description of the ApiMethod.  This is particularly used
+    # when displaying information about the call.
+    def self.desc(value=nil)
+      return @description unless value
+      @description = value
+    end
+
+    # Returns a registered ApiMethod by it's name.
+    #
+    def self.find(method_name)
+      @@register[method_name]
+    end
+
+    # detect when subclasses are created and register them by a
+    # parameterized name
+    #
+    def self.inherited(subclass)
+      # prevent the RssMethod and RestMethod classes themselves from being
+      # registered.  Yes, this probably isn't the cleanest way to do this.
+      return if subclass == RssMethod or subclass == RestMethod
+
+      # register subclasses
+      name = subclass.name.demodulize.underscore.to_sym
+      if @@register[name]
+        # TODO: do smart integration with logging
+        puts "warning: api method already registered for #{@@register[name]}.  This has been overridden by #{subclass.name}"
+      end
+      @@register[subclass.name.demodulize.underscore.to_sym] = subclass
+    end
+
+  end
+
+  # A call that requests from the KickApps RSS API.
+  class RssMethod < ApiMethod
+    # a place for subclasses to store what parameters are expected and
+    # what default values to use.
+    def self.param(name, value)
+      self.params[name] = value
+    end
+
+    def self.params
+      @params ||= {}
+    end
+
+    # returns all RssMethod subclasses
+    def self.all
+      ApiMethod.all.select do |name, clazz| 
+        clazz < RssMethod 
+      end
+    end
+
+    def execute(queryString="")
+      parameters = prepare(queryString)
+      uri = URI.parse(Kickit::Config.feed_url)
+
+      path = "#{uri.path}?".concat(parameters.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))
+      puts path
+      response = Net::HTTP.get(uri.host, path)
+      Hash.from_xml(response)
+    end
+
+    private
+
+    # takes care of setting up the parameters to pass
+    def prepare(queryString)
+      parameters = {}
+      parameters[:as] = Kickit::Config.as
+
+      if (queryString and !queryString.empty?)
+        params = queryString.split('&')
+        params.each do |param|
+          name, value = param.split("=")
+          parameters[CGI.escape(name)] = CGI.escape(value)
+        end
+      end
+
+      parameters = self.class.params.merge(parameters)
+      parameters
+    end
+  end
+
   # This helps to manage a specific user's session against the API in
   # which the user must first obtain and utilize a session token for
   # making any subsequent requests to the API.
@@ -77,88 +174,11 @@ module Kickit
 
   end
 
-
-  class ApiMethod
-    @@register = {}
-    
-    # all registered api method implementations
-    @@register = {}
-    def execute(parameters={})
-    end
-
-    def self.all()
-      @@register
-    end
-
-    def self.desc(value=nil)
-      return @description unless value
-      @description = value
-    end
-
-    def self.find(method_name)
-      @@register[method_name]
-    end
-
-    # detect when subclasses are created and register them by a
-    # parameterized name
-    def self.inherited(subclass)
-      return if subclass == RssMethod or subclass == RestMethod
-      # register subclasses
-      name = subclass.name.demodulize.underscore.to_sym
-      if @@register[name]
-        # TODO: do smart integration with logging
-        puts "warning: api method already registered for #{@@register[name]}.  This has been overridden by #{subclass.name}"
-      end
-      @@register[subclass.name.demodulize.underscore.to_sym] = subclass
-    end
-
-  end
-
-  class RssMethod < ApiMethod
-    def self.param(name, value)
-      self.params[name] = value
-    end
-
-    def self.params
-      @params ||= {}
-    end
-
-    def self.all
-      ApiMethod.all.select do |name, clazz| 
-        clazz < RssMethod 
-      end
-    end
-
-    def execute(queryString="")
-      parameters = prepare(queryString)
-      uri = URI.parse(Kickit::Config.feed_url)
-
-      path = "#{uri.path}?".concat(parameters.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))
-      puts path
-      response = Net::HTTP.get(uri.host, path)
-      Hash.from_xml(response)
-    end
-
-    private
-    def prepare(queryString)
-      parameters = {}
-      parameters[:as] = Kickit::Config.as
-
-      if (queryString and !queryString.empty?)
-        params = queryString.split('&')
-        params.each do |param|
-          name, value = param.split("=")
-          parameters[CGI.escape(name)] = CGI.escape(value)
-        end
-      end
-
-      parameters = self.class.params.merge(parameters)
-      parameters
-    end
-  end
-
+  # An ApiMethod that calls the KickApps REST API.
+  #
   class RestMethod < ApiMethod
 
+    # a RestSession
     attr_accessor :session
 
 
@@ -266,6 +286,8 @@ module Kickit
   end
 
 
+  # this module is just a place to store all of the API method
+  # configurations.
   module API
    
     #
@@ -485,6 +507,7 @@ module Kickit
 
       param :url, :required => true
     end
+
     class RetrieveMediaMeta < RestMethod
       desc "Retrieve media metadata"
       uri_path '/mediainfo/:mediaType/:mediaId/:as'
