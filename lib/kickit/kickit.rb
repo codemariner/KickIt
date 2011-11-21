@@ -31,7 +31,6 @@ module Kickit
     @@post_config_callbacks = []
 
     def initialize(&block)
-      puts "config loaded"
       yield Config if block_given?
 
       # notify whoever cares that the config has potentially changed
