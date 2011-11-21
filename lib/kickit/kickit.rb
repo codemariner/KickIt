@@ -1,5 +1,6 @@
 module Kickit
 
+  # Kickit specific errors
   module Errors
     class ParameterRequiredError < StandardError
       attr_reader :parameter_name
@@ -12,8 +13,8 @@ module Kickit
     end
   end
 
-  # Configuration for kickapps API.  Perform configuration in some kind of
-  # initializer.
+  # Configuration for kickapps API.  Call this anytime after kickit
+  # library has been included
   #
   #   KickIt::Config.new do |config|
   #     config.rest_base_uri: 'http://api.kickapps.com/rest'
@@ -25,10 +26,23 @@ module Kickit
   # which will take care of this for you.
   #
   class Config
-    class << self; attr_accessor :rest_base_uri, :as, :developerKey, :token, :admin_username, :feed_url; end
+    class << self; attr_accessor :rest_base_uri, :as, :developerKey, :token, :admin_username, :feed_url, :soap_config; end
+
+    @@post_config_callbacks = []
 
     def initialize(&block)
+      puts "config loaded"
       yield Config if block_given?
+
+      # notify whoever cares that the config has potentially changed
+      @@post_config_callbacks.each {|b| b.call(Config)}
+    end
+
+    # registers a callback that will be called after
+    # config has been changed using the initialization block
+    #
+    def self.post_config(&block)
+      @@post_config_callbacks << block
     end
   end
 
@@ -81,6 +95,7 @@ module Kickit
   module ApiMethod
     
     def self.included(base)
+
       base.class_eval do
     
         # Performs the API call.  Subclasses should override this.
@@ -89,7 +104,9 @@ module Kickit
         end
     
         # A description of the ApiMethod.  This is particularly used
-        # when displaying information about the call.
+        # when displaying information about the call like in the generated
+        # rake tasks.
+        #
         def self.desc(value=nil)
           return @description unless value
           @description = value
@@ -118,3 +135,4 @@ end
 
 require 'kickit/methods/rest'
 require 'kickit/methods/rss'
+require 'kickit/methods/soap'

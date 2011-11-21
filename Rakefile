@@ -6,4 +6,4 @@ require 'rake'
 
 require 'kickit'
 require 'kickit/tasks'
-require 'init'
+require 'bin/kickit_config'
