@@ -1,5 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + "/spec_helper")
 require 'tempfile'
+require 'kickit/util/csv'
 
 describe Kickit::Csv do
 
