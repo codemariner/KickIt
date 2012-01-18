@@ -188,6 +188,15 @@ module Kickit
       param :userid, :required => true
     end
 
+    class AddExternalMedia < RestMethod
+      desc 'add external media url'
+      uri_path '/externalmedia/add/:as'
+
+      param :name, :required => true
+      param :pathToMedia, :required => true
+      param :allowPublicTagging
+    end
+
     class RetrieveExternalMedia < RestMethod
       desc 'retrieve external media data'
       uri_path '/externalmedia/:as'
@@ -256,6 +265,26 @@ module Kickit
       param :userId , :required => true
     end
 
+    class AddTag < RestMethod
+      desc "Add tags to media, members, and groups"
+
+      uri_path '/tags/add/:mediaType/:mediaId/:as'
+
+      param :mediaType, :required => true
+      param :mediaId, :required => true
+      param :url 
+      param :tags 
+    end
+
+    class GetTagCount < RestMethod
+      desc "Retrieves tag count for media"
+
+      uri_path '/tags/count/:mediaType/:as'
+
+      param :mediaType, :required => true
+      param :mediaId, :required => true
+      param :url 
+    end
   end
 
 end
