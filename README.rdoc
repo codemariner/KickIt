@@ -14,7 +14,7 @@ functions; things like creating new badges, data mining, and managing
 user accounts.  However, this library also attempts to provide a sensible 
 API for users to integrate it into their own applications.
 
-The Kit social API consists of multiple API formats. This includes RSS,
+The Kit social API consists of multiple API formats such as RSS,
 REST, and SOAP. The KickIt library provides a way to access all of these
 (though the SOAP integration is a work in progress at this time). 
 Each kind of API call that can be made is embodied by a specific +ApiMethod+
@@ -24,7 +24,7 @@ for, they can be easily added.
 
 === Rake Tasks
 
-Each of the +ApiMethod+s can have a corresponding Rake task you can
+Each of the implemented API methods can have a corresponding Rake task you can
 execute.  To see a complete list, simply do:
  
  $ rake -T
@@ -69,6 +69,7 @@ Note that you may need to require '+kickit/tasks+' if you're including this in y
 
 * You'll need an account with Kit digital.  A trial account can be created for free.
 * Ruby ~> 1.8.7
+* Bundler if you're just working from a git clone.
 
 
 == Installation
@@ -79,7 +80,8 @@ As a gem:
 
 As a git clone:
 
- git clone git://github.com/codemariner/KickIt.git
+ $ git clone git://github.com/codemariner/KickIt.git
+ $ bundle install
 
 
 == Configuration
