@@ -1,10 +1,11 @@
 = KickIt
 
-KickIt is an unofficial Ruby wrapper for the {Kitdigital}[http://www.kitd.com]
+KickIt is the unofficial Ruby wrapper for the {Kitdigital}[http://www.kitd.com]
 social {API}[http://community.kickapps.com]. This API gives access to
 their 'white-label social media publishing system' which provides a hosted
 platform for implementing socials features for your site.
-Think something like {DISQUS}[http://disqus.com/] but with a more robust feature set. 
+Think something like {DISQUS}[http://disqus.com/] but with a more robust
+feature set and a full backend API.
 
 == Usage
 
@@ -66,8 +67,8 @@ Note that you may need to require '+kickit/tasks+' if you're including this in y
 
 == Requirements
 
- * You'll need an account with Kit digital.  A trial account can be created for free.
- * Ruby ~> 1.8.7
+* You'll need an account with Kit digital.  A trial account can be created for free.
+* Ruby ~> 1.8.7
 
 
 == Installation
@@ -84,7 +85,7 @@ As a git clone:
 == Configuration
 
 Access credentials and additional information must be provided in order to
-use this library.  You can write this configuration in Ruby like so:
+use this library.  You can provide this configuration in Ruby like so:
 
  
   require 'kickit'
@@ -99,7 +100,7 @@ use this library.  You can write this configuration in Ruby like so:
     config.feed_url = 'http://cdnserve.a-feed.com/service/getFeed2.kickAction'
     config.soap_config = {
         :endpoint => {
-            :uri => 'http://cambio.kickapps.net/soap/KaSoapSvc',
+            :uri => 'http://myapp.kickapps.net/soap/KaSoapSvc',
             :version => 1
         },
         :affiliate => {
@@ -110,10 +111,9 @@ use this library.  You can write this configuration in Ruby like so:
     }
   end
 
-By default, the command line scripts under +bin/+ automatically requires
-a +kickit_config.rb+ file.  There is a sample +kickit_config.rb+ file under
-the +bin/+ directory already.
-
+By default, the command line scripts under +bin/+ automatically require
+a +kickit_config.rb+ file.  There is a sample +bin/kickit_config.rb+ file
+already.  Simply update that one when using the +bin/+ scripts or require your own.
 
 
 == TODO
