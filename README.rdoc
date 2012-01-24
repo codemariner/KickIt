@@ -63,6 +63,34 @@ To see more of what is possible, take a look at the API docs for {REST}[http://w
 
 Note that you may need to require '+kickit/tasks+' if you're including this in your aplication.
 
+==== Examples
+
+[Adding a badge] <tt>rake kickit:add_badge[http://myapp.com, 'You Rock Badge', you_rock, global]</tt>
+[Getting User Profile Data (including photos)] <tt>rake kickit:user_profile[photos,1234567]</tt>
+
+
+=== Programatic Usage
+
+==== REST API
+The Kit social REST API requires user credentials in the form of a token.
+This token is obtained from the create_token method and should be used for
+all subsequent calls.
+
+The KickIt library provides some basic session managment and convenience
+methods for interacting with the remote API.  Here are some examples:
+
+
+
+ require 'kickit'
+ require 'kickit_config'
+
+ Kickit::RestSession.new('ssayles') do |ka|
+   response = ka.api(:delete_media).execute(:url => 'http://www.myapp.com/content/page',
+                                            :mediaType => 'emedia',
+                                            :mediaId => 1)
+   ap response
+ end
+
 
 
 == Requirements
@@ -117,7 +145,6 @@ By default, the command line scripts under +bin/+ automatically require
 a +kickit_config.rb+ file.  There is a sample +bin/kickit_config.rb+ file
 already.  Simply update that one when using the +bin/+ scripts or require your own.
 
-
 == TODO
 
  * Add installer for Rails.
@@ -130,7 +157,7 @@ KickIt is written and maintained by {Scott Sayles}[mailto:ssayles@users.sourcefo
 
 = Copyright
 
-Copyright (c) 2012 Scott Sayles. See LICENSE for details.
+Copyright (c) 2011 Scott Sayles. See LICENSE for details.
 
  
 
