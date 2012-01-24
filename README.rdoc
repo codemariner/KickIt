@@ -1,5 +1,134 @@
 = KickIt
 
-KickIt is a lightweight Ruby wrapper around the KickApps API.
+KickIt is an unofficial Ruby wrapper for the {Kitdigital}[http://www.kitd.com]
+social {API}[http://community.kickapps.com]. This API gives access to
+their 'white-label social media publishing system' which provides a hosted
+platform for implementing socials features for your site.
+Think something like {DISQUS}[http://disqus.com/] but with a more robust feature set. 
 
+== Usage
+
+This library is currently geared toward facilitating administrative
+functions; things like creating new badges, data mining, and managing 
+user accounts.  However, this library also attempts to provide a sensible 
+API for users to integrate it into their own applications.
+
+The Kit social API consists of multiple API formats. This includes RSS,
+REST, and SOAP. The KickIt library provides a way to access all of these
+(though the SOAP integration is a work in progress at this time). 
+Each kind of API call that can be made is embodied by a specific +ApiMethod+
+within the code.  Although not all of the Kit social API methods are accounted
+for, they can be easily added.
+
+
+=== Rake Tasks
+
+Each of the +ApiMethod+s can have a corresponding Rake task you can
+execute.  To see a complete list, simply do:
+ 
+ $ rake -T
+ rake kickit:add_action[name]                                     # Adds a new badge action to the system
+ rake kickit:add_badge[url,verbosename,name,location]             # Add a badge
+ rake kickit:add_external_media[pathToMedia,name]                 # add external media url
+ rake kickit:add_or_remove_favorite[url,mediaType,operation]      # adds or removes a media as a favorite
+ rake kickit:add_or_remove_friend[friendId,operation]             # Add or remove friend.
+ rake kickit:add_points[addToOffset,userId]                       # Add to memeber offset
+ rake kickit:add_tag[url,tags,mediaType,mediaId]                  # Add tags to media, members, and gr...
+ rake kickit:add_user_action[actionId,quantity,user_id,location]  # Add user actions to aid in the awa...
+ rake kickit:approve_media[mediaType,mediaId]                     # approve member media
+ rake kickit:create_token[username,idType,developerKey]           # Obtains a token used when calling ...
+ rake kickit:delete_media[url,mediaType,mediaId]                  # delete a media
+ rake kickit:edit_badge[badgeId,published,name]                   # Edit a badge from the available se...
+ rake kickit:favorite_media[mediaType,userid]                     # retrieves user's favorite media
+ rake kickit:favorite_media_check[url,mediaType,mediaId]          # check if a member has favorited a ...
+ rake kickit:flag_media[mediaType,mediaId,operation]              # add or remove flag from media
+ rake kickit:get_tag_count[url,mediaType,mediaId]                 # Retrieves tag count for media
+ rake kickit:list_badge_requirements[badgeId]                     # Returns a list of all Badge Requir...
+ rake kickit:list_badges[published,location]                      # This is an admin method that will ...
+ rake kickit:list_member_media[mediaType,userid]                  # retrieve a users media
+ rake kickit:photos_feed[query]                                   # list photos for a specific user
+ rake kickit:retrieve_external_media[url]                         # Retrieve media metadata
+ rake kickit:retrieve_media_meta[mediaType,mediaId]               # Retrieve media metadata
+ rake kickit:set_profile_photo[photoId]                           # Set user profile
+ rake kickit:upload_media[isProfileImage,mediaType,name,media]    # upload memeber media
+ rake kickit:user_associations[operation,userId]                  # Get a list of a member’s friends...
+ rake kickit:user_badge_status[user_id,location]                  # Returns progress information on ba...
+ rake kickit:user_badges[pgNum,pageSize,user_id]                  # Retrieves badges belonging to a sp...
+ rake kickit:user_feed[query]                                     # list users from feed
+ rake kickit:user_profile[include,userid]                         # Retrievs a specific user profile.
+
+
+To see more of what is possible, take a look at the API docs for {REST}[http://www.kickapps.com/documentation/index.php/Category:REST], {RSS}[http://www.kickapps.com/documentation/index.php/RSS_Feed_API], and {SOAP}[http://www.kickapps.com/documentation/index.php/Single_Sign_On_API].
+
+Note that you may need to require '+kickit/tasks+' if you're including this in your aplication.
+
+
+
+== Requirements
+
+ * You'll need an account with Kit digital.  A trial account can be created for free.
+ * Ruby ~> 1.8.7
+
+
+== Installation
+
+As a gem:
+
+ gem install kickit
+
+As a git clone:
+
+ git clone git://github.com/codemariner/KickIt.git
+
+
+== Configuration
+
+Access credentials and additional information must be provided in order to
+use this library.  You can write this configuration in Ruby like so:
+
+ 
+  require 'kickit'
+  
+  Kickit::Config.new do |config|
+  
+    config.developerKey = 'xdxdxdxd'
+    config.as = 123456
+    config.admin_username = 'siteadmin'
+  
+    config.rest_base_uri = 'http://api.kickapps.com/rest'
+    config.feed_url = 'http://cdnserve.a-feed.com/service/getFeed2.kickAction'
+    config.soap_config = {
+        :endpoint => {
+            :uri => 'http://cambio.kickapps.net/soap/KaSoapSvc',
+            :version => 1
+        },
+        :affiliate => {
+          :username => 'SiteTeam',
+          :email => 'SiteTeam@app.com',
+          :sitename => 'MyApp'
+        }
+    }
+  end
+
+By default, the command line scripts under +bin/+ automatically requires
+a +kickit_config.rb+ file.  There is a sample +kickit_config.rb+ file under
+the +bin/+ directory already.
+
+
+
+== TODO
+
+ * Add installer for Rails.
+ * Fix remaining issues with SOAP calls.
+
+
+= Credits
+
+KickIt is written and maintained by {Scott Sayles}[mailto:ssayles@users.sourceforge.net].  
+
+= Copyright
+
+Copyright (c) 2012 Scott Sayles. See LICENSE for details.
+
+ 
 
